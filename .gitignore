@@ -1,6 +1,7 @@
 *.jou
 *.log
 *.str
+.Xil
 project.cache
 project.hw
 project.ip_user_files
