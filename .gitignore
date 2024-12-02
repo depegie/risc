@@ -1,0 +1,8 @@
+*.jou
+*.log
+*.str
+project.cache
+project.hw
+project.ip_user_files
+project.sim
+project.xpr
