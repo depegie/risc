@@ -1,14 +1,14 @@
 `include "defines.vh"
 
 module ram (
-    input wire                               Clk,
-    input wire                               Rst,
-    input wire [$clog2(`RAM_CAPACITY)-1 : 0] Addr,
-    input wire                               Cs,
-    input wire                               We,
-    input wire [8*`WORD_SIZE-1 : 0]          Wdata,
-    output reg [8*`WORD_SIZE-1 : 0]          Rdata = 'h0,
-    output reg                               Ack = 1'b0
+    input wire                        Clk,
+    input wire                        Rst,
+    input wire [`ADDR_SIZE-1 : 0]     Addr,
+    input wire                        Cs,
+    input wire                        We,
+    input wire [8*`WORD_SIZE_B-1 : 0] Wdata,
+    output reg [8*`WORD_SIZE_B-1 : 0] Rdata,
+    output reg                        Ack
 );
     reg [8*`RAM_CAPACITY-1 : 0] memory = 'h0;
     
@@ -20,7 +20,7 @@ module ram (
             Rdata <= 'h0;
         end
         else if (Cs & ~We) begin
-            Rdata <= memory[8*Addr +: 8*`WORD_SIZE];
+            Rdata <= memory[8*Addr +: 8*`WORD_SIZE_B];
         end
     end
     
@@ -41,7 +41,7 @@ module ram (
             memory <= 'b0;
         end
         else if (Cs & We & ~Ack) begin
-            memory[8*Addr +: 8*`WORD_SIZE] <= Wdata;
+            memory[8*Addr +: 8*`WORD_SIZE_B] <= Wdata;
         end
     end
     

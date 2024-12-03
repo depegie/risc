@@ -9,8 +9,8 @@ module tb_ram();
     reg  [$clog2(`RAM_CAPACITY)-1 : 0] Addr;
     reg                                Cs;
     reg                                We;
-    reg  [8*`WORD_SIZE-1 : 0]          Wdata;
-    wire [8*`WORD_SIZE-1 : 0]          Rdata;
+    reg  [8*`WORD_SIZE_B-1 : 0]          Wdata;
+    wire [8*`WORD_SIZE_B-1 : 0]          Rdata;
     wire                               Ack;
 
     ram dut (
@@ -59,7 +59,7 @@ module tb_ram();
     end
     endtask
 
-    task write(input [$clog2(`RAM_CAPACITY)-1 : 0] addr, input [8*`WORD_SIZE-1 : 0] data);
+    task write(input [$clog2(`RAM_CAPACITY)-1 : 0] addr, input [8*`WORD_SIZE_B-1 : 0] data);
     begin
         Addr = addr;
         Cs = 1'b1;
