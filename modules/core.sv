@@ -1,82 +1,84 @@
-`include "defines.vh"
+`include "defines.svh"
 
 module core (
-    input wire                               Clk,
-    input wire                               Rst,
-    output reg [$clog2(`RAM_CAPACITY)-1 : 0] Addr,
-    output reg                               Cs,
-    output reg                               We,
-    output reg [8*`WORD_SIZE_B-1 : 0]        Wdata,
-    input wire [8*`WORD_SIZE_B-1 : 0]        Rdata,
-    input wire                               Ack
+    input                         Clk,
+    input                         Rst,
+
+    output reg [`ADDR_SIZE-1 : 0] Wb_addr,
+    output reg                    Wb_cs,
+    output reg                    Wb_we,
+    output reg [`WORD_SIZE-1 : 0] Wb_wdata,
+    input      [`WORD_SIZE-1 : 0] Wb_rdata,
+    input                         Wb_ack
 );
-    int id;
-    reg [8*`WORD_SIZE_B-1 : 0] register[32];
+    reg [`WORD_SIZE-1 : 0] register[32];
 
-    wire [4 : 0]                rs1_id;
-    wire [8*`WORD_SIZE_B-1 : 0] rs1;
-    wire [8*`WORD_SIZE_B-1 : 0] rs1_alu;
-    wire [8*`WORD_SIZE_B-1 : 0] rs1_cu;
+    wire [`WORD_SIZE-1 : 0] rs1;
+    wire [`WORD_SIZE-1 : 0] rs2;
+    wire [`WORD_SIZE-1 : 0] rd;
+    wire            [4 : 0] cu_rs1_id;
+    wire [`WORD_SIZE-1 : 0] cu_rs1_data;
+    wire            [4 : 0] cu_rs2_id;
+    wire [`WORD_SIZE-1 : 0] cu_rs2_data;
+    wire            [4 : 0] cu_rd_id;
+    wire [`WORD_SIZE-1 : 0] cu_rd_data;
+    wire                    cu_rd_write;
+    wire            [3 : 0] cu_alu_control;
+    wire                    cu_alu_enable;
+    wire           [11 : 0] cu_imm_data;
+    wire                    cu_imm_enable;
+    wire [`WORD_SIZE-1 : 0] alu_in1;
+    wire [`WORD_SIZE-1 : 0] alu_in2;
+    wire [`WORD_SIZE-1 : 0] alu_out;
+    wire [`WORD_SIZE-1 : 0] alu_in2_val;
 
-    wire [4 : 0]                rs2_id;
-    wire [8*`WORD_SIZE_B-1 : 0] rs2;
-    wire [8*`WORD_SIZE_B-1 : 0] rs2_alu;
-    wire [8*`WORD_SIZE_B-1 : 0] rs2_cu;
-
-    wire [4 : 0]                rd_id;
-    wire                        rd_valid;
-    wire [8*`WORD_SIZE_B-1 : 0] rd;
-    wire [8*`WORD_SIZE_B-1 : 0] rd_alu;
-    wire [8*`WORD_SIZE_B-1 : 0] rd_cu;
-
-    wire [3 : 0]                alu_control;
-    wire                        alu_enable;
-
-    assign rd  = alu_enable ? rd_alu : rd_cu;
-    assign rs1 = register[rs1_id];
-    assign rs2 = register[rs2_id];
-
-    assign rs1_alu = alu_enable ? rs1 : 'b0;
-    assign rs2_alu = alu_enable ? rs2 : 'b0;
-    assign rs1_cu  = alu_enable ? 'b0 : rs1;
-    assign rs2_cu  = alu_enable ? 'b0 : rs2;
+    assign rd          = cu_alu_enable ? alu_out : cu_rd_data;
+    assign rs1         = register[cu_rs1_id];
+    assign rs2         = register[cu_rs2_id];
+    assign cu_rs1_data = cu_alu_enable ? 'b0 : rs1;
+    assign cu_rs2_data = cu_alu_enable ? 'b0 : rs2;
+    assign alu_in1     = cu_alu_enable ? rs1 : 'b0;
+    assign alu_in2     = cu_alu_enable ? alu_in2_val : 'b0;
+    assign alu_in2_val = cu_imm_enable ? {20'b0, cu_imm_data} : rs2;
 
     always_ff @(posedge Clk) begin
         if (Rst) begin
-            for (id=0; id<32; id=id+1) begin
+            for (int id=0; id<32; id=id+1) begin
                 register[id] <= 'b0;
             end
         end
-        else if (rd_valid & rd_id != 5'b0) begin
-            register[rd_id] <= rd;
+        else if (cu_rd_write & cu_rd_id != 5'b0) begin
+            register[cu_rd_id] <= rd;
         end
     end
 
-    control_unit control_unit_inst (
+    ctrl_unit ctrl_unit_inst (
         .Clk         ( Clk ),
         .Rst         ( Rst ),
-        .Addr        ( Addr ),
-        .Cs          ( Cs ),
-        .We          ( We ),
-        .Wdata       ( Wdata ),
-        .Rdata       ( Rdata ),
-        .Ack         ( Ack ),
-        .rs1_id      ( rs1_id ),
-        .rs1_data    ( rs1_cu ),
-        .rs2_id      ( rs2_id ),
-        .rs2_data    ( rs2_cu ),
-        .rd_id       ( rd_id ),
-        .rd_valid    ( rd_valid ),
-        .rd_data     ( rd_cu ),
-        .alu_control ( alu_control ),
-        .alu_enable  ( alu_enable )
+        .Wb_addr     ( Wb_addr ),
+        .Wb_cs       ( Wb_cs ),
+        .Wb_we       ( Wb_we ),
+        .Wb_wdata    ( Wb_wdata ),
+        .Wb_rdata    ( Wb_rdata ),
+        .Wb_ack      ( Wb_ack ),
+        .Rs1_id      ( cu_rs1_id ),
+        .Rs1_data    ( cu_rs1_data ),
+        .Rs2_id      ( cu_rs2_id ),
+        .Rs2_data    ( cu_rs2_data ),
+        .Rd_id       ( cu_rd_id ),
+        .Rd_data     ( cu_rd_data ),
+        .Rd_write    ( cu_rd_write ),
+        .Alu_control ( cu_alu_control ),
+        .Alu_enable  ( cu_alu_enable ),
+        .Imm_data    ( cu_imm_data ),
+        .Imm_enable  ( cu_imm_enable )
     );
 
-    alu alu_inst (
-        .rs1     ( rs1_alu ),
-        .rs2     ( rs2_alu ),
-        .rd      ( rd_alu ),
-        .control ( alu_control )
+    arith_logic_unit arith_logic_unit_inst (
+        .In1     ( alu_in1 ),
+        .In2     ( alu_in2 ),
+        .Out     ( alu_out ),
+        .Control ( cu_alu_control )
     );
 
 endmodule
