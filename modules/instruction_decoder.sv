@@ -4,10 +4,9 @@ module instruction_decoder (
     input      [`WORD_SIZE-1 : 0] Instr,
     output reg            [3 : 0] Alu_ctrl,
     output reg            [4 : 0] Instr_id
-
 );
     wire [`WORD_SIZE-1 : 0] instr;
-    
+
     assign instr = Instr;
 
     // localparam [6 : 0] 7'b0110011 = 7'b0110011;
