@@ -14,7 +14,7 @@
 `define INSTR_FUNCT7      instr[31:25]
 `define INSTR_I_TYPE_IMM  instr[31:20]
 `define INSTR_L_TYPE_IMM  instr[31:20]
-`define INSTR_S_TYPE_IMM {instr[31:25], instr[11:7]} 
+`define INSTR_S_TYPE_IMM {instr[31:25], instr[11:7]}
 `define INSTR_J_TYPE_IMM  instr[31:12]
 
 `endif
