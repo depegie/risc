@@ -3,7 +3,7 @@
 module core (
     input                         Clk,
     input                         Rst,
-
+    input                         Irq,
     output reg [`ADDR_SIZE-1 : 0] Wb_addr,
     output reg                    Wb_cs,
     output reg                    Wb_we,
@@ -61,6 +61,7 @@ module core (
         .Wb_wdata    ( Wb_wdata ),
         .Wb_rdata    ( Wb_rdata ),
         .Wb_ack      ( Wb_ack ),
+        .Irq         ( Irq )
         .Rs1_id      ( cu_rs1_id ),
         .Rs1_data    ( cu_rs1_data ),
         .Rs2_id      ( cu_rs2_id ),

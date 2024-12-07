@@ -11,6 +11,8 @@ module ctrl_unit (
     input      [`WORD_SIZE-1 : 0] Wb_rdata,
     input                         Wb_ack,
 
+    input                         Irq,
+
     output reg            [4 : 0] Rs1_id,
     input      [`WORD_SIZE-1 : 0] Rs1_data,
 
@@ -86,7 +88,8 @@ module ctrl_unit (
     always_comb begin
         case (state)
             ST_IDLE: begin
-                next_state = ST_FETCH;
+                if (Irq) next_state = ST_IDLE;
+                else     next_state = ST_FETCH;
             end
 
             ST_FETCH: begin
@@ -103,38 +106,51 @@ module ctrl_unit (
                     L_TYPE_OPCODE: next_state = ST_EXECUTE_L_TYPE;
                     S_TYPE_OPCODE: next_state = ST_EXECUTE_S_TYPE;
                     J_TYPE_OPCODE: next_state = ST_EXECUTE_J_TYPE;
-                    default:       next_state = ST_FETCH;
+                    default: begin
+                        if (Irq) next_state = ST_IDLE;
+                        else     next_state = ST_FETCH;
+                    end
                 endcase
             end
 
             ST_EXECUTE_R_TYPE: begin
-                next_state = ST_FETCH;
+                if (Irq) next_state = ST_IDLE;
+                else     next_state = ST_FETCH;
             end
 
             ST_EXECUTE_I_TYPE: begin
-                next_state = ST_FETCH;
+                if (Irq) next_state = ST_IDLE;
+                else     next_state = ST_FETCH;
             end
 
             ST_EXECUTE_L_TYPE: begin
-                if (Wb_cs & Wb_ack)
-                    next_state = ST_FETCH;
-                else
+                if (Wb_cs & Wb_ack) begin
+                    if (Irq) next_state = ST_IDLE;
+                    else     next_state = ST_FETCH;
+                end
+                else begin
                     next_state = ST_EXECUTE_L_TYPE;
+                end
             end
 
             ST_EXECUTE_S_TYPE: begin
-                if (Wb_cs & Wb_ack)
-                    next_state = ST_FETCH;
-                else
+                if (Wb_cs & Wb_ack) begin
+                    if (Irq) next_state = ST_IDLE;
+                    else     next_state = ST_FETCH;
+                end
+                else begin
                     next_state = ST_EXECUTE_S_TYPE;
+                end
             end
 
             ST_EXECUTE_J_TYPE: begin
-                next_state = ST_FETCH;
+                if (Irq) next_state = ST_IDLE;
+                else     next_state = ST_FETCH;
             end
             
             default: begin
-                next_state = ST_FETCH;
+                if (Irq) next_state = ST_IDLE;
+                else     next_state = ST_FETCH;
             end
             
         endcase
