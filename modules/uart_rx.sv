@@ -2,18 +2,18 @@ module uart_rx (
     input              Clk,
     input              Rst,
     input              Rx,
-    output reg [7 : 0] M_axis_tdata,
-    output reg         M_axis_tvalid,
+    output reg [7 : 0] M_axis_tdata = 8'h00,
+    output reg         M_axis_tvalid = 1'b0,
     input              M_axis_tready
 );
     wire rx_sync;
 
-    reg         rx_sync_q;
-    reg [2 : 0] bit_counter;
-    reg [3 : 0] cycle_counter;
-    reg         bit_counter_ena;
-    reg         sample_bit_ena;
-    reg         counters_rst;
+    reg         rx_sync_q = 1'b1;
+    reg [2 : 0] bit_counter = 3'd0;
+    reg [3 : 0] cycle_counter = 4'd0;
+    reg         bit_counter_ena = 1'b0;
+    reg         sample_bit_ena = 1'b0;
+    reg         counters_rst = 1'b1
 
     enum reg [2 : 0] {
         ST_IDLE      = 3'b1 << 'd0,
@@ -93,6 +93,27 @@ module uart_rx (
 
     always_ff @(posedge Clk) begin
         if (Rst) begin
+            M_axis_tdata <= 8'b0;
+        end
+        else if (sample_bit_ena) begin
+            M_axis_tdata <= {rx_sync, M_axis_tdata[7:1]};
+        end
+    end
+
+    always_ff @(posedge Clk) begin
+        if (Rst) begin
+            M_axis_tvalid <= 1'b0;
+        end
+        else if (M_axis_tvalid & M_axis_tready) begin
+            M_axis_tvalid <= 1'b0;
+        end
+        else if (bit_counter == 3'd7 & cycle_counter == 4'd15) begin
+            M_axis_tvalid <= 1'b1;
+        end
+    end
+
+    always_ff @(posedge Clk) begin
+        if (Rst) begin
             bit_counter <= 3'd0;
         end
         else if (counters_rst) begin
@@ -112,27 +133,6 @@ module uart_rx (
         end
         else begin
             cycle_counter <= cycle_counter + 'd1;
-        end
-    end
-
-    always_ff @(posedge Clk) begin
-        if (Rst) begin
-            M_axis_tdata <= 8'b0;
-        end
-        else if (sample_bit_ena) begin
-            M_axis_tdata <= {rx_sync, M_axis_tdata[7:1]};
-        end
-    end
-
-    always_ff @(posedge Clk) begin
-        if (Rst) begin
-            M_axis_tvalid <= 1'b0;
-        end
-        else if (M_axis_tvalid & M_axis_tready) begin
-            M_axis_tvalid <= 1'b0;
-        end
-        else if (bit_counter == 3'd7 & cycle_counter == 4'd15) begin
-            M_axis_tvalid <= 1'b1;
         end
     end
 
