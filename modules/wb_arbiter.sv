@@ -1,26 +1,28 @@
+`include "defines.svh"
+
 module wb_arbiter(
-    input                     Sel,
+    input                         Sel,
 
-    input  [`ADDR_SIZE-1 : 0] Wb_addr_interpreter,
-    input                     Wb_cs_interpreter,
-    input                     Wb_we_interpreter,
-    input  [`WORD_SIZE-1 : 0] Wb_wdata_interpreter,
-    output [`WORD_SIZE-1 : 0] Wb_rdata_interpreter,
-    output                    Wb_ack_interpreter,
+    input      [`ADDR_SIZE-1 : 0] Wb_addr_interpreter,
+    input                         Wb_cs_interpreter,
+    input                         Wb_we_interpreter,
+    input      [`WORD_SIZE-1 : 0] Wb_wdata_interpreter,
+    output reg [`WORD_SIZE-1 : 0] Wb_rdata_interpreter,
+    output reg                    Wb_ack_interpreter,
 
-    input  [`ADDR_SIZE-1 : 0] Wb_addr_core,
-    input                     Wb_cs_core,
-    input                     Wb_we_core,
-    input  [`WORD_SIZE-1 : 0] Wb_wdata_core,
-    output [`WORD_SIZE-1 : 0] Wb_rdata_core,
-    output                    Wb_ack_core,
+    input      [`ADDR_SIZE-1 : 0] Wb_addr_core,
+    input                         Wb_cs_core,
+    input                         Wb_we_core,
+    input      [`WORD_SIZE-1 : 0] Wb_wdata_core,
+    output reg [`WORD_SIZE-1 : 0] Wb_rdata_core,
+    output reg                    Wb_ack_core,
 
-    output [`ADDR_SIZE-1 : 0] Wb_addr,
-    output                    Wb_cs,
-    output                    Wb_we,
-    output [`WORD_SIZE-1 : 0] Wb_wdata,
-    input  [`WORD_SIZE-1 : 0] Wb_rdata,
-    input                     Wb_ack
+    output reg [`ADDR_SIZE-1 : 0] Wb_addr,
+    output reg                    Wb_cs,
+    output reg                    Wb_we,
+    output reg [`WORD_SIZE-1 : 0] Wb_wdata,
+    input      [`WORD_SIZE-1 : 0] Wb_rdata,
+    input                         Wb_ack
 );
     always_comb begin
         if (Sel) begin
