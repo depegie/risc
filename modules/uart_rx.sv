@@ -58,21 +58,18 @@ module uart_rx (
                     next_state = ST_DATA_BIT;
                 end
             end
-            
         endcase
     end
 
     always_comb begin
         case (state)
             ST_IDLE: begin
-                M_axis_tvalid = 1'b0;
                 bit_counter_ena = 1'b0;
                 sample_bit_ena = 1'b0;
                 counters_rst = 1'b1;
             end
 
             ST_START_BIT: begin
-                M_axis_tvalid = 1'b0;
                 bit_counter_ena = 1'b0;
                 sample_bit_ena = 1'b0;
                 counters_rst = 1'b0;
@@ -91,7 +88,6 @@ module uart_rx (
 
                 counters_rst = 1'b0;
             end
-            
         endcase
     end
 
