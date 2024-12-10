@@ -1,6 +1,8 @@
 `ifndef DEFINES_SVH
 `define DEFINES_SVH
 
+`define CLK_PERIOD 10
+
 `define RAM_CAPACITY_B 128
 `define ADDR_SIZE      $clog2(`RAM_CAPACITY_B)
 `define WORD_SIZE_B    4

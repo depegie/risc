@@ -13,7 +13,7 @@ module uart_rx (
     reg [3 : 0] cycle_counter = 4'd0;
     reg         bit_counter_ena = 1'b0;
     reg         sample_bit_ena = 1'b0;
-    reg         counters_rst = 1'b1
+    reg         counters_rst = 1'b1;
 
     enum reg [2 : 0] {
         ST_IDLE      = 3'b1 << 'd0,
