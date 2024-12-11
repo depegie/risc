@@ -4,13 +4,17 @@
 class driver;
     virtual driver_if vif;
     mailbox #(string) mbx;
-    event drv2gen_finish_ev;
+    event drv2gen_trans_ev;
     event gen2drv_eof_ev;
 
-    function new(virtual driver_if vif, ref mailbox #(string) mbx, ref event drv2gen_finish_ev, ref event gen2drv_eof_ev);
+    function new(virtual driver_if vif,
+                 ref mailbox #(string) mbx,
+                 ref event drv2gen_trans_ev,
+                 ref event gen2drv_eof_ev);
+
         this.vif = vif;
         this.mbx = mbx;
-        this.drv2gen_finish_ev = drv2gen_finish_ev;
+        this.drv2gen_trans_ev = drv2gen_trans_ev;
         this.gen2drv_eof_ev = gen2drv_eof_ev;
     endfunction
 
@@ -24,7 +28,7 @@ class driver;
         fork
             forever begin
                 mbx.get(request);
-                 $display("[Driver] %0s", request);
+                $write("[Driver] %0s", request);
 
                 foreach (request[sign]) begin
                     vif.tx = 1'b0;
@@ -40,14 +44,15 @@ class driver;
                     #(16*`CLK_PERIOD);
                 end
 
-                ->drv2gen_finish_ev;
+                #(1024*`CLK_PERIOD);
+                ->drv2gen_trans_ev;
             end
+
             begin
                 wait(gen2drv_eof_ev.triggered);
             end
         join_any
     endtask
-    
 endclass
 
 `endif

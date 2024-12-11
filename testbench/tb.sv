@@ -4,35 +4,39 @@
 `include "generator.svh"
 `include "driver.svh"
 `include "monitor.svh"
+`include "scoreboard.svh"
 
 module tb;
     generator gen;
     driver drv;
     monitor mon;
+    scoreboard scb;
 
     driver_if driver_iface();
     monitor_if monitor_iface();
     mailbox #(string) gen2drv_mbx;
     mailbox #(string) gen2scb_mbx;
-    event drv2gen_finish_ev;
-    event scb2gen_finish_ev;
+    mailbox #(string) mon2scb_mbx;
+    event drv2gen_trans_ev;
+    event scb2gen_trans_ev;
+    event mon2scb_trans_ev;
     event gen2drv_eof_ev;
     event gen2scb_eof_ev;
+    event scb2mon_finish_ev;
 
     logic tb_clk;
     logic tb_rst;
-
-    // string request;
-    // logic [7:0] sign;
 
     assign monitor_iface.rx = driver_iface.tx;
     
     initial begin
         gen2drv_mbx = new();
         gen2scb_mbx = new();
+        mon2scb_mbx = new();
         gen = new();
-        drv = new(driver_iface, gen2drv_mbx, drv2gen_finish_ev, gen2drv_eof_ev);
-        mon = new(monitor_iface);
+        drv = new(driver_iface, gen2drv_mbx, drv2gen_trans_ev, gen2drv_eof_ev);
+        mon = new(monitor_iface, mon2scb_mbx, mon2scb_trans_ev, scb2mon_finish_ev);
+        scb = new(gen2scb_mbx, mon2scb_mbx, scb2gen_trans_ev, mon2scb_trans_ev, gen2scb_eof_ev, scb2mon_finish_ev);
 
         drv.init();
 
@@ -43,10 +47,11 @@ module tb;
         #(16*`CLK_PERIOD);
 
         fork
-            gen.run("tx.txt", gen2drv_mbx, drv2gen_finish_ev, gen2drv_eof_ev);
-            // gen.run("rx.txt", gen2scb_mbx, scb2gen_finish_ev, gen2scb_eof_ev);
+            gen.run("rx.txt", gen2drv_mbx, drv2gen_trans_ev, gen2drv_eof_ev); //todo
+            gen.run("rx.txt", gen2scb_mbx, scb2gen_trans_ev, gen2scb_eof_ev);
             drv.run();
-            // mon.run();
+            mon.run();
+            scb.run();
         join
 
         $finish();
@@ -61,6 +66,6 @@ module tb;
         .M_axis_tdata  ( ),
         .M_axis_tvalid ( ),
         .M_axis_tready ( 1'b1 )
-    );
+    ); // todo
 
 endmodule

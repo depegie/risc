@@ -2,8 +2,7 @@
 `define GENERATOR_SVH
 
 class generator;
-
-    task run(string name, ref mailbox #(string) mbx, ref event finish_ev, ref event eof_ev);
+    task run(string name, ref mailbox #(string) mbx, ref event trans_ev, ref event eof_ev);
         int file = $fopen(name, "r");
         string request;
 
@@ -11,12 +10,11 @@ class generator;
             $fgets(request, file);
 
             mbx.put(request);
-            @(finish_ev);
+            @(trans_ev);
         end
 
         ->eof_ev;
     endtask
-
 endclass
 
 `endif
