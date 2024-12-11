@@ -26,12 +26,12 @@ class driver;
                 mbx.get(request);
                  $display("[Driver] %0s", request);
 
-                foreach (request[i]) begin
+                foreach (request[sign]) begin
                     vif.tx = 1'b0;
                     #(16*`CLK_PERIOD);
                     
-                    for (int j=0; j<8; j++) begin
-                        vif.tx = request[i][j];
+                    for (int b=0; b<8; b++) begin
+                        vif.tx = request[sign][b];
                         #(16*`CLK_PERIOD);
                     end
 
