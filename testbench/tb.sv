@@ -47,11 +47,11 @@ module tb;
         #(16*`CLK_PERIOD);
 
         fork
-            gen.run("rx.txt", gen2drv_mbx, drv2gen_trans_ev, gen2drv_eof_ev); //todo
-            gen.run("rx.txt", gen2scb_mbx, scb2gen_trans_ev, gen2scb_eof_ev);
+            gen.run("tx.txt", gen2drv_mbx, drv2gen_trans_ev, gen2drv_eof_ev); //todo
+            // gen.run("rx.txt", gen2scb_mbx, scb2gen_trans_ev, gen2scb_eof_ev);
             drv.run();
             mon.run();
-            scb.run();
+            // scb.run();
         join
 
         $finish();
@@ -59,13 +59,37 @@ module tb;
 
     always #(`CLK_PERIOD/2) tb_clk = !tb_clk;
 
-    uart_rx uart_rx_inst (
-        .Clk           ( tb_clk ),
-        .Rst           ( tb_rst ),
-        .Rx            ( driver_iface.tx ),
-        .M_axis_tdata  ( ),
-        .M_axis_tvalid ( ),
-        .M_axis_tready ( 1'b1 )
-    ); // todo
+    uart_command_decoder uart_command_decoder_inst (
+        .Clk(tb_clk),
+        .Rst(tb_rst),
+        .Rx(driver_iface.tx),
+        .Tx(monitor_iface.rx),
+        .Wb_addr(tb_wb_addr),
+        .Wb_cs(tb_wb_cs),
+        .Wb_we(tb_wb_we),
+        .Wb_wdata(tb_wb_wdata),
+        .Wb_rdata(tb_wb_rdata),
+        .Wb_ack(tb_wb_ack),
+        .Irq(),
+        .Core_rst()
+    );
+
+    ram ram_inst (
+        .Clk      ( tb_clk ),
+        .Rst      ( tb_rst ),
+        .Wb_addr  ( tb_wb_addr ),
+        .Wb_cs    ( tb_wb_cs ),
+        .Wb_we    ( tb_wb_we ),
+        .Wb_wdata ( tb_wb_wdata ),
+        .Wb_rdata ( tb_wb_rdata ),
+        .Wb_ack   ( tb_wb_ack )
+    );
+
+    wire [`ADDR_SIZE-1 : 0] tb_wb_addr;
+    wire                    tb_wb_cs;
+    wire                    tb_wb_we;
+    wire [`WORD_SIZE-1 : 0] tb_wb_wdata;
+    wire [`WORD_SIZE-1 : 0] tb_wb_rdata;
+    wire                    tb_wb_ack;
 
 endmodule
