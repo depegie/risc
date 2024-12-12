@@ -27,8 +27,6 @@ module tb;
     logic tb_clk;
     logic tb_rst;
 
-    assign monitor_iface.rx = driver_iface.tx;
-    
     initial begin
         gen2drv_mbx = new();
         gen2scb_mbx = new();
@@ -47,31 +45,35 @@ module tb;
         #(16*`CLK_PERIOD);
 
         fork
-            gen.run("tx.txt", gen2drv_mbx, drv2gen_trans_ev, gen2drv_eof_ev); //todo
-            // gen.run("rx.txt", gen2scb_mbx, scb2gen_trans_ev, gen2scb_eof_ev);
+            gen.run("tx.txt", gen2drv_mbx, drv2gen_trans_ev, gen2drv_eof_ev);
+            gen.run("rx.txt", gen2scb_mbx, scb2gen_trans_ev, gen2scb_eof_ev);
             drv.run();
             mon.run();
-            // scb.run();
+            scb.run();
         join
+
+        $display("Test passed");
 
         $finish();
     end
 
     always #(`CLK_PERIOD/2) tb_clk = !tb_clk;
 
-    uart_command_decoder uart_command_decoder_inst (
+    uart_system_ctrl uart_system_ctrl_inst (
         .Clk(tb_clk),
         .Rst(tb_rst),
-        .Rx(driver_iface.tx),
-        .Tx(monitor_iface.rx),
-        .Wb_addr(tb_wb_addr),
-        .Wb_cs(tb_wb_cs),
-        .Wb_we(tb_wb_we),
-        .Wb_wdata(tb_wb_wdata),
-        .Wb_rdata(tb_wb_rdata),
-        .Wb_ack(tb_wb_ack),
+        .Uart_rx(driver_iface.tx),
+        .Uart_tx(monitor_iface.rx),
+        .S_wb_addr(tb_wb_addr),
+        .S_wb_cs(tb_wb_cs),
+        .S_wb_we(tb_wb_we),
+        .S_wb_wdata(tb_wb_wdata),
+        .S_wb_rdata(tb_wb_rdata),
+        .S_wb_ack(tb_wb_ack),
         .Irq(),
-        .Core_rst()
+        .Rst_req()
+
+        
     );
 
     ram ram_inst (

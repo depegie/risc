@@ -1,4 +1,4 @@
-module ascii_command_decoder_tb;
+module request_decoder_tb;
 
     // Testbench sygnały
     logic clk;
@@ -14,7 +14,7 @@ module ascii_command_decoder_tb;
     logic ack;
 
     // Instancja testowanego modułu
-    ascii_command_decoder uut (
+    request_decoder uut (
         .clk(clk),
         .reset(reset),
         .tvalid(tvalid),

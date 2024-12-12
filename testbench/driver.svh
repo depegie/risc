@@ -28,7 +28,9 @@ class driver;
         fork
             forever begin
                 mbx.get(request);
-                $write("[Driver] %0s", request);
+                
+                if (request != "")
+                    $write("[Driver] %0s", request);
 
                 foreach (request[sign]) begin
                     vif.tx = 1'b0;
@@ -44,7 +46,7 @@ class driver;
                     #(16*`CLK_PERIOD);
                 end
 
-                #(1024*`CLK_PERIOD);
+                #(2048*`CLK_PERIOD);
                 ->drv2gen_trans_ev;
             end
 

@@ -1,24 +1,35 @@
-module ascii_command_decoder (
-    input  logic        clk,
-    input  logic       Rst,
-	output logic 		Core_rst,
-    input  logic        tvalid,
-    input  logic [7:0]  tdata,
-    output logic        tready,
-    output logic [7:0] addr,
-    output logic [31:0] wdata,
-    output logic        we,
-    output logic        cs,
-    output logic        irq,
-    input  logic        ack
-);
+`include "defines.svh"
 
+module request_decoder (
+    input  logic                    Clk,
+    input  logic                    Rst,
+    input  logic                    S_axis_tvalid,
+    input  logic            [7 : 0] S_axis_tdata,
+    output logic                    S_axis_tready,
+    output logic [`ADDR_SIZE-1 : 0] Addr,
+    output logic [`WORD_SIZE-1 : 0] Wdata,
+    output logic                    We,
+    output logic                    Cs,
+    input  logic                    Ack,
+    output logic                    Irq,
+    output logic                    Rst_req
+);
     logic [7:0] command_reg[18];
     logic [4:0] write_ptr;
 
-    assign tready = 1'b1;
+    // assign S_axis_tready = 1'b1;
 
-    // logic decoding;
+    always_ff @(posedge Clk) begin
+        if (Rst) begin
+            S_axis_tready <= 1'b0;
+        end
+        else if (S_axis_tvalid & S_axis_tready) begin
+            S_axis_tready <= 1'b0;
+        end
+        else if (S_axis_tvalid) begin
+            S_axis_tready <= 1'b1;
+        end
+    end
 
     enum logic [7:0] {
         IDLE,
@@ -53,7 +64,7 @@ module ascii_command_decoder (
     always_comb begin
         case (state)
             IDLE: begin
-                if (tvalid && tready && tdata == 8'h0A) begin
+                if (S_axis_tvalid && S_axis_tready && S_axis_tdata == 8'h0A) begin
                     next_state = CHECK_CMD;
                 end
                 else begin
@@ -94,7 +105,7 @@ module ascii_command_decoder (
                          command_reg[2] == "a" &&
                          command_reg[3] == "d" &&
                          command_reg[4] == " ") begin
-                    next_state = PARSE_READ_ARGS; //parse read addr !
+                    next_state = PARSE_READ_ARGS; //parse read Addr !
                 end
                 else begin
                     next_state = IDLE; 
@@ -116,11 +127,11 @@ module ascii_command_decoder (
                 next_state = IDLE;
             end
             READ: begin
-                if (cs & ack) next_state = IDLE;
+                if (Cs & Ack) next_state = IDLE;
                 else          next_state = READ;
             end
             WRITE: begin
-                if (cs & ack) next_state = IDLE;
+                if (Cs & Ack) next_state = IDLE;
                 else          next_state = WRITE;
             end
 
@@ -128,7 +139,7 @@ module ascii_command_decoder (
         endcase
     end
 
-    always_ff @(posedge clk or posedge Rst) begin
+    always_ff @(posedge Clk) begin
         if (Rst) begin
             state <= IDLE;
         end
@@ -140,73 +151,73 @@ module ascii_command_decoder (
     always_comb begin
         case (state)
             WRITE: begin
-                addr = parsed_addr;
-                cs = 1;
-                we = 1;
-                wdata = parsed_data;
-                Core_rst = 1'b0;
+                Addr = parsed_addr;
+                Cs = 1;
+                We = 1;
+                Wdata = parsed_data;
+                Rst_req = 1'b0;
             end
             READ: begin
-                addr <= parsed_addr;
-                cs <= 1;
-                we <= 0;
-                wdata <= 32'd0;
-                Core_rst = 1'b0;
+                Addr = parsed_addr;
+                Cs = 1;
+                We = 0;
+                Wdata = 32'd0;
+                Rst_req = 1'b0;
             end
             RESET: begin
-                addr = 16'd0;
-                we = 0;
-                cs = 0;
-                wdata = 32'd0;
-                Core_rst = 1'b1;
+                Addr = 16'd0;
+                We = 0;
+                Cs = 0;
+                Wdata = 32'd0;
+                Rst_req = 1'b1;
             end
             default: begin
-                addr = 16'd0;
-                we = 0;
-                cs = 0;
-                wdata = 32'd0;
-                Core_rst = 1'b0;
+                Addr = 16'd0;
+                We = 0;
+                Cs = 0;
+                Wdata = 32'd0;
+                Rst_req = 1'b0;
             end
         endcase
     end
 
-    always_ff @(posedge clk or posedge Rst) begin
+    always_ff @(posedge Clk) begin
         if (Rst) begin
-            irq <= 1;
+            Irq <= 1;
         end
         else if (state == START) begin
-            irq <= 0;
+            Irq <= 0;
         end
         else if (state == STOP) begin
-            irq <= 1;
+            Irq <= 1;
         end
     end
 
-    always_ff @(posedge clk or posedge Rst) begin
+    always_ff @(posedge Clk) begin
         if (Rst) begin
             write_ptr <= 'd0;
         end
-        else if ((state == WRITE & cs & ack) || 
-                 (state == READ & cs & ack)  || 
+        else if ((state == WRITE & Cs & Ack) || 
+                 (state == READ & Cs & Ack)  || 
                   state == START             || 
                   state == STOP              ) begin
             write_ptr <= 'd0;
         end
-        else if (tvalid && tready) begin
+        else if (S_axis_tvalid && S_axis_tready) begin
             write_ptr <= write_ptr + 'd1;
         end
     end
 
-    always_ff @(posedge clk or posedge Rst) begin
+    always_ff @(posedge Clk) begin
         if (Rst) begin
             for (int i=0; i<18; i++) command_reg[i] <= 'b0;
         end
-        if (tvalid && tready) begin
-            command_reg[write_ptr] <= tdata;
+        if (S_axis_tvalid && S_axis_tready) begin
+            command_reg[write_ptr] <= S_axis_tdata;
         end
     end
 
-    always_ff @(posedge clk or posedge Rst) begin
+    always_ff @(posedge Clk) begin
         if (Rst) begin
             parsed_addr <= 'h0;
             parsed_data <= 'h0;

@@ -44,6 +44,7 @@ class scoreboard;
                 end
                 else begin
                     $display("[Scoreboard] Error");
+                    $display("Test failed");
                     $finish();
                 end
             end

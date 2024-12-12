@@ -21,7 +21,12 @@ module ram (
             Wb_rdata <= 'h0;
         end
         else if (Wb_cs & ~Wb_we) begin
-            Wb_rdata <= {memory[Wb_addr+3], memory[Wb_addr+2], memory[Wb_addr+1], memory[Wb_addr]};
+            Wb_rdata <= {
+                memory[Wb_addr+3],
+                memory[Wb_addr+2],
+                memory[Wb_addr+1],
+                memory[Wb_addr+0]
+            };
         end
     end
     

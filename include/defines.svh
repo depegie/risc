@@ -1,9 +1,16 @@
 `ifndef DEFINES_SVH
 `define DEFINES_SVH
 
+`define SIM
+
 `define CLK_PERIOD 10
 
-`define RAM_CAPACITY_B 128
+`ifdef SIM
+    `define RAM_CAPACITY_B 256
+`else
+    `define RAM_CAPACITY_B 64
+`endif
+
 `define ADDR_SIZE      $clog2(`RAM_CAPACITY_B)
 `define WORD_SIZE_B    4
 `define WORD_SIZE      8*`WORD_SIZE_B
