@@ -12,8 +12,7 @@ module tb;
     monitor mon;
     scoreboard scb;
 
-    driver_if driver_iface();
-    monitor_if monitor_iface();
+    uart_if uart();
     mailbox #(string) gen2drv_mbx;
     mailbox #(string) gen2scb_mbx;
     mailbox #(string) mon2scb_mbx;
@@ -27,13 +26,20 @@ module tb;
     logic tb_clk;
     logic tb_rst;
 
+    wire [`ADDR_SIZE-1 : 0] tb_wb_addr;
+    wire                    tb_wb_cs;
+    wire                    tb_wb_we;
+    wire [`WORD_SIZE-1 : 0] tb_wb_wdata;
+    wire [`WORD_SIZE-1 : 0] tb_wb_rdata;
+    wire                    tb_wb_ack;
+
     initial begin
         gen2drv_mbx = new();
         gen2scb_mbx = new();
         mon2scb_mbx = new();
         gen = new();
-        drv = new(driver_iface, gen2drv_mbx, drv2gen_trans_ev, gen2drv_eof_ev);
-        mon = new(monitor_iface, mon2scb_mbx, mon2scb_trans_ev, scb2mon_finish_ev);
+        drv = new(uart, gen2drv_mbx, drv2gen_trans_ev, gen2drv_eof_ev);
+        mon = new(uart, mon2scb_mbx, mon2scb_trans_ev, scb2mon_finish_ev);
         scb = new(gen2scb_mbx, mon2scb_mbx, scb2gen_trans_ev, mon2scb_trans_ev, gen2scb_eof_ev, scb2mon_finish_ev);
 
         drv.init();
@@ -62,8 +68,8 @@ module tb;
     uart_system_ctrl uart_system_ctrl_inst (
         .Clk(tb_clk),
         .Rst(tb_rst),
-        .Uart_rx(driver_iface.tx),
-        .Uart_tx(monitor_iface.rx),
+        .Uart_rx(uart.tx),
+        .Uart_tx(uart.rx),
         .S_wb_addr(tb_wb_addr),
         .S_wb_cs(tb_wb_cs),
         .S_wb_we(tb_wb_we),
@@ -72,8 +78,6 @@ module tb;
         .S_wb_ack(tb_wb_ack),
         .Irq(),
         .Rst_req()
-
-        
     );
 
     ram ram_inst (
@@ -86,12 +90,5 @@ module tb;
         .Wb_rdata ( tb_wb_rdata ),
         .Wb_ack   ( tb_wb_ack )
     );
-
-    wire [`ADDR_SIZE-1 : 0] tb_wb_addr;
-    wire                    tb_wb_cs;
-    wire                    tb_wb_we;
-    wire [`WORD_SIZE-1 : 0] tb_wb_wdata;
-    wire [`WORD_SIZE-1 : 0] tb_wb_rdata;
-    wire                    tb_wb_ack;
 
 endmodule

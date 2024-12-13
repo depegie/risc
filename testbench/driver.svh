@@ -2,12 +2,12 @@
 `define DRIVER_SVH
 
 class driver;
-    virtual driver_if vif;
+    virtual uart_if vif;
     mailbox #(string) mbx;
     event drv2gen_trans_ev;
     event gen2drv_eof_ev;
 
-    function new(virtual driver_if vif,
+    function new(virtual uart_if vif,
                  ref mailbox #(string) mbx,
                  ref event drv2gen_trans_ev,
                  ref event gen2drv_eof_ev);

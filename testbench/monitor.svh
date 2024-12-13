@@ -2,12 +2,12 @@
 `define MONITOR_SVH
 
 class monitor;
-    virtual monitor_if vif;
+    virtual uart_if vif;
     mailbox #(string) mon2scb_mbx;
     event mon2scb_trans_ev;
     event scb2mon_finish_ev;
 
-    function new(virtual monitor_if vif,
+    function new(virtual uart_if vif,
                  ref mailbox #(string) mon2scb_mbx,
                  ref event mon2scb_trans_ev,
                  ref event scb2mon_finish_ev);
