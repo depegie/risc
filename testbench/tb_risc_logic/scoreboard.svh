@@ -39,10 +39,7 @@ class scoreboard;
                 $display("[Scoreboard] T=%0t", $time);
                 $write("[Scoreboard] Response received: %0s", response);
                 $write("[Scoreboard] Response expected: %0s", response_expected);
-                if (response == response_expected) begin
-                    $display("[Scoreboard] Ok");
-                end
-                else begin
+                if (response != response_expected) begin
                     $display("[Scoreboard] Error");
                     $display("Test failed");
                     $finish();

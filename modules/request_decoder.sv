@@ -12,7 +12,7 @@ module request_decoder (
     output logic                    Cs,
     input  logic                    Ack,
     output logic                    Irq,
-    output logic                    Rst_req
+    output logic                    Req_rst
 );
     logic [7:0] command_reg[18];
     logic [4:0] write_ptr;
@@ -85,14 +85,16 @@ module request_decoder (
                          command_reg[3] == "p") begin
                     next_state = STOP;
                 end
-                else if (command_reg[0] == "r" &&
+                else if (Irq                   &&
+                         command_reg[0] == "r" &&
                          command_reg[1] == "e" &&
                          command_reg[2] == "s" &&
                          command_reg[3] == "e" &&
                          command_reg[4] == "t") begin
                     next_state = RESET;
                 end
-                else if (command_reg[0] == "w" &&
+                else if (Irq                   &&
+                         command_reg[0] == "w" &&
                          command_reg[1] == "r" &&
                          command_reg[2] == "i" &&
                          command_reg[3] == "t" &&
@@ -100,12 +102,13 @@ module request_decoder (
                          command_reg[5] == " ") begin
                     next_state = PARSE_WRITE_ARGS;
                 end
-                else if (command_reg[0] == "r" &&
+                else if (Irq                   &&
+                         command_reg[0] == "r" &&
                          command_reg[1] == "e" &&
                          command_reg[2] == "a" &&
                          command_reg[3] == "d" &&
                          command_reg[4] == " ") begin
-                    next_state = PARSE_READ_ARGS; //parse read Addr !
+                    next_state = PARSE_READ_ARGS;
                 end
                 else begin
                     next_state = IDLE; 
@@ -155,28 +158,28 @@ module request_decoder (
                 Cs = 1;
                 We = 1;
                 Wdata = parsed_data;
-                Rst_req = 1'b0;
+                Req_rst = 1'b0;
             end
             READ: begin
                 Addr = parsed_addr;
                 Cs = 1;
                 We = 0;
                 Wdata = 32'd0;
-                Rst_req = 1'b0;
+                Req_rst = 1'b0;
             end
             RESET: begin
                 Addr = 16'd0;
                 We = 0;
                 Cs = 0;
                 Wdata = 32'd0;
-                Rst_req = 1'b1;
+                Req_rst = 1'b1;
             end
             default: begin
                 Addr = 16'd0;
                 We = 0;
                 Cs = 0;
                 Wdata = 32'd0;
-                Rst_req = 1'b0;
+                Req_rst = 1'b0;
             end
         endcase
     end
@@ -200,7 +203,8 @@ module request_decoder (
         else if ((state == WRITE & Cs & Ack) || 
                  (state == READ & Cs & Ack)  || 
                   state == START             || 
-                  state == STOP              ) begin
+                  state == STOP              || 
+                  state == RESET             ) begin
             write_ptr <= 'd0;
         end
         else if (S_axis_tvalid && S_axis_tready) begin

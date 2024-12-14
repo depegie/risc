@@ -1,15 +1,16 @@
 `include "defines.svh"
 
 module core (
-    input                         Clk,
-    input                         Rst,
-    input                         Irq,
-    output reg [`ADDR_SIZE-1 : 0] Wb_addr,
-    output reg                    Wb_cs,
-    output reg                    Wb_we,
-    output reg [`WORD_SIZE-1 : 0] Wb_wdata,
-    input      [`WORD_SIZE-1 : 0] Wb_rdata,
-    input                         Wb_ack
+    input                     Clk,
+    input                     Rst,
+    input                     Irq,
+    output                    Irq_pending,
+    output [`ADDR_SIZE-1 : 0] M_wb_addr,
+    output                    M_wb_cs,
+    output                    M_wb_we,
+    output [`WORD_SIZE-1 : 0] M_wb_wdata,
+    input  [`WORD_SIZE-1 : 0] M_wb_rdata,
+    input                     M_wb_ack
 );
     reg [`WORD_SIZE-1 : 0] register[32];
 
@@ -55,13 +56,14 @@ module core (
     ctrl_unit ctrl_unit_inst (
         .Clk         ( Clk ),
         .Rst         ( Rst ),
-        .Wb_addr     ( Wb_addr ),
-        .Wb_cs       ( Wb_cs ),
-        .Wb_we       ( Wb_we ),
-        .Wb_wdata    ( Wb_wdata ),
-        .Wb_rdata    ( Wb_rdata ),
-        .Wb_ack      ( Wb_ack ),
+        .M_wb_addr   ( M_wb_addr ),
+        .M_wb_cs     ( M_wb_cs ),
+        .M_wb_we     ( M_wb_we ),
+        .M_wb_wdata  ( M_wb_wdata ),
+        .M_wb_rdata  ( M_wb_rdata ),
+        .M_wb_ack    ( M_wb_ack ),
         .Irq         ( Irq ),
+        .Irq_pending ( Irq_pending ),
         .Rs1_id      ( cu_rs1_id ),
         .Rs1_data    ( cu_rs1_data ),
         .Rs2_id      ( cu_rs2_id ),

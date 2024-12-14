@@ -4,14 +4,15 @@ module ctrl_unit (
     input                         Clk,
     input                         Rst,
 
-    output reg [`ADDR_SIZE-1 : 0] Wb_addr,
-    output reg                    Wb_cs,
-    output reg                    Wb_we,
-    output reg [`WORD_SIZE-1 : 0] Wb_wdata,
-    input      [`WORD_SIZE-1 : 0] Wb_rdata,
-    input                         Wb_ack,
+    output reg [`ADDR_SIZE-1 : 0] M_wb_addr,
+    output reg                    M_wb_cs,
+    output reg                    M_wb_we,
+    output reg [`WORD_SIZE-1 : 0] M_wb_wdata,
+    input      [`WORD_SIZE-1 : 0] M_wb_rdata,
+    input                         M_wb_ack,
 
     input                         Irq,
+    output reg                    Irq_pending,
 
     output reg            [4 : 0] Rs1_id,
     input      [`WORD_SIZE-1 : 0] Rs1_data,
@@ -58,8 +59,8 @@ module ctrl_unit (
         end
         else if ( state == ST_EXECUTE_R_TYPE                   |
                   state == ST_EXECUTE_I_TYPE                   |
-                 (state == ST_EXECUTE_L_TYPE & Wb_cs & Wb_ack) |
-                 (state == ST_EXECUTE_S_TYPE & Wb_cs & Wb_ack) ) begin
+                 (state == ST_EXECUTE_L_TYPE & M_wb_cs & M_wb_ack) |
+                 (state == ST_EXECUTE_S_TYPE & M_wb_cs & M_wb_ack) ) begin
             addr <= addr + 'd4;
         end
         else if (state == ST_EXECUTE_J_TYPE) begin
@@ -71,8 +72,8 @@ module ctrl_unit (
         if (Rst) begin
             instr <= 'h0;
         end
-        else if (state == ST_FETCH & Wb_ack) begin
-            instr <= Wb_rdata;
+        else if (state == ST_FETCH & M_wb_ack) begin
+            instr <= M_wb_rdata;
         end
     end
 
@@ -93,7 +94,7 @@ module ctrl_unit (
             end
 
             ST_FETCH: begin
-                if (Wb_cs & Wb_ack)
+                if (M_wb_cs & M_wb_ack)
                     next_state = ST_DECODE;
                 else
                     next_state = ST_FETCH;
@@ -124,7 +125,7 @@ module ctrl_unit (
             end
 
             ST_EXECUTE_L_TYPE: begin
-                if (Wb_cs & Wb_ack) begin
+                if (M_wb_cs & M_wb_ack) begin
                     if (Irq) next_state = ST_IDLE;
                     else     next_state = ST_FETCH;
                 end
@@ -134,7 +135,7 @@ module ctrl_unit (
             end
 
             ST_EXECUTE_S_TYPE: begin
-                if (Wb_cs & Wb_ack) begin
+                if (M_wb_cs & M_wb_ack) begin
                     if (Irq) next_state = ST_IDLE;
                     else     next_state = ST_FETCH;
                 end
@@ -159,10 +160,10 @@ module ctrl_unit (
     always_comb begin
         case (state)
             ST_IDLE: begin
-                Wb_addr = 'b0;
-                Wb_cs = 1'b0;
-                Wb_we = 1'b0;
-                Wb_wdata = 'b0;
+                M_wb_addr = 'b0;
+                M_wb_cs = 1'b0;
+                M_wb_we = 1'b0;
+                M_wb_wdata = 'b0;
                 Rs1_id = 5'b00000;
                 Rs2_id = 5'b00000;
                 Rd_id = 5'b00000;
@@ -172,13 +173,14 @@ module ctrl_unit (
                 Alu_enable = 1'b0;
                 Imm_data = 12'h000;
                 Imm_enable = 1'b0;
+                Irq_pending = 1'b1;
             end
 
             ST_FETCH: begin
-                Wb_addr = addr;
-                Wb_cs = 1'b1;
-                Wb_we = 1'b0;
-                Wb_wdata = 'b0;
+                M_wb_addr = addr;
+                M_wb_cs = 1'b1;
+                M_wb_we = 1'b0;
+                M_wb_wdata = 'b0;
                 Rs1_id = 5'b00000;
                 Rs2_id = 5'b00000;
                 Rd_id = 5'b00000;
@@ -188,13 +190,14 @@ module ctrl_unit (
                 Alu_enable = 1'b0;
                 Imm_data = 12'h000;
                 Imm_enable = 1'b0;
+                Irq_pending = 1'b0;
             end
 
             ST_DECODE: begin
-                Wb_addr = 'b0;
-                Wb_cs = 1'b0;
-                Wb_we = 1'b0;
-                Wb_wdata = 'b0;
+                M_wb_addr = 'b0;
+                M_wb_cs = 1'b0;
+                M_wb_we = 1'b0;
+                M_wb_wdata = 'b0;
                 Rs1_id = 5'b00000;
                 Rs2_id = 5'b00000;
                 Rd_id = 5'b00000;
@@ -204,13 +207,14 @@ module ctrl_unit (
                 Alu_enable = 1'b0;
                 Imm_data = 12'h000;
                 Imm_enable = 1'b0;
+                Irq_pending = 1'b0;
             end
 
             ST_EXECUTE_R_TYPE: begin
-                Wb_addr = 'b0;
-                Wb_cs = 1'b0;
-                Wb_we = 1'b0;
-                Wb_wdata = 'b0;
+                M_wb_addr = 'b0;
+                M_wb_cs = 1'b0;
+                M_wb_we = 1'b0;
+                M_wb_wdata = 'b0;
                 Rs1_id = `INSTR_RS1;
                 Rs2_id = `INSTR_RS2;
                 Rd_id = `INSTR_RD;
@@ -220,13 +224,14 @@ module ctrl_unit (
                 Alu_enable = 1'b1;
                 Imm_data = 12'h000;
                 Imm_enable = 1'b0;
+                Irq_pending = 1'b0;
             end
 
             ST_EXECUTE_I_TYPE: begin
-                Wb_addr = 'b0;
-                Wb_cs = 1'b0;
-                Wb_we = 1'b0;
-                Wb_wdata = 'b0;
+                M_wb_addr = 'b0;
+                M_wb_cs = 1'b0;
+                M_wb_we = 1'b0;
+                M_wb_wdata = 'b0;
                 Rs1_id = `INSTR_RS1;
                 Rs2_id = 5'b00000;
                 Rd_id = `INSTR_RD;
@@ -236,29 +241,31 @@ module ctrl_unit (
                 Alu_enable = 1'b1;
                 Imm_data = `INSTR_I_TYPE_IMM;
                 Imm_enable = 1'b1;
+                Irq_pending = 1'b0;
             end
 
             ST_EXECUTE_L_TYPE: begin
-                Wb_addr = Rs1_data + `INSTR_L_TYPE_IMM;
-                Wb_cs = 1'b1;
-                Wb_we = 1'b0;
-                Wb_wdata = 'b0;
+                M_wb_addr = Rs1_data + `INSTR_L_TYPE_IMM;
+                M_wb_cs = 1'b1;
+                M_wb_we = 1'b0;
+                M_wb_wdata = 'b0;
                 Rs1_id = `INSTR_RS1;
                 Rs2_id = 5'b00000;
                 Rd_id = `INSTR_RD;
-                Rd_data = Wb_rdata;
-                Rd_write = Wb_ack;
+                Rd_data = M_wb_rdata;
+                Rd_write = M_wb_ack;
                 Alu_control = 4'b0000;
                 Alu_enable = 1'b0;
                 Imm_data = 12'h000;
                 Imm_enable = 1'b0;
+                Irq_pending = 1'b0;
             end
 
             ST_EXECUTE_S_TYPE: begin
-                Wb_addr = Rs1_data + `INSTR_S_TYPE_IMM;
-                Wb_cs = 1'b1;
-                Wb_we = 1'b1;
-                Wb_wdata = Rs2_data;
+                M_wb_addr = Rs1_data + `INSTR_S_TYPE_IMM;
+                M_wb_cs = 1'b1;
+                M_wb_we = 1'b1;
+                M_wb_wdata = Rs2_data;
                 Rs1_id = `INSTR_RS1;
                 Rs2_id = `INSTR_RS2;
                 Rd_id = 5'b00000;
@@ -268,13 +275,14 @@ module ctrl_unit (
                 Alu_enable = 1'b0;
                 Imm_data = 12'h000;
                 Imm_enable = 1'b0;
+                Irq_pending = 1'b0;
             end
 
             ST_EXECUTE_J_TYPE: begin
-                Wb_addr = 'b0;
-                Wb_cs = 1'b0;
-                Wb_we = 1'b0;
-                Wb_wdata = 'b0;
+                M_wb_addr = 'b0;
+                M_wb_cs = 1'b0;
+                M_wb_we = 1'b0;
+                M_wb_wdata = 'b0;
                 Rs1_id = 5'b00000;
                 Rs2_id = 5'b00000;
                 Rd_id = `INSTR_RD;
@@ -284,13 +292,14 @@ module ctrl_unit (
                 Alu_enable = 1'b0;
                 Imm_data = 12'h000;
                 Imm_enable = 1'b0;
+                Irq_pending = 1'b0;
             end
 
             default: begin
-                Wb_addr = 'b0;
-                Wb_cs = 1'b0;
-                Wb_we = 1'b0;
-                Wb_wdata = 'b0;
+                M_wb_addr = 'b0;
+                M_wb_cs = 1'b0;
+                M_wb_we = 1'b0;
+                M_wb_wdata = 'b0;
                 Rs1_id = 5'b00000;
                 Rs2_id = 5'b00000;
                 Rd_id = 5'b00000;
@@ -300,6 +309,7 @@ module ctrl_unit (
                 Alu_enable = 1'b0;
                 Imm_data = 12'h000;
                 Imm_enable = 1'b0;
+                Irq_pending = 1'b0;
             end
         endcase
     end

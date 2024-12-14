@@ -1,49 +1,49 @@
 `include "defines.svh"
 
-module wb_arbiter(
-    input                         Sel,
+module wb_arbiter (
+    input                         Irq_pending,
 
-    input      [`ADDR_SIZE-1 : 0] Wb_addr_interpreter,
-    input                         Wb_cs_interpreter,
-    input                         Wb_we_interpreter,
-    input      [`WORD_SIZE-1 : 0] Wb_wdata_interpreter,
-    output reg [`WORD_SIZE-1 : 0] Wb_rdata_interpreter,
-    output reg                    Wb_ack_interpreter,
+    input      [`ADDR_SIZE-1 : 0] S_wb_ctrl_addr,
+    input                         S_wb_ctrl_cs,
+    input                         S_wb_ctrl_we,
+    input      [`WORD_SIZE-1 : 0] S_wb_ctrl_wdata,
+    output reg [`WORD_SIZE-1 : 0] S_wb_ctrl_rdata,
+    output reg                    S_wb_ctrl_ack,
 
-    input      [`ADDR_SIZE-1 : 0] Wb_addr_core,
-    input                         Wb_cs_core,
-    input                         Wb_we_core,
-    input      [`WORD_SIZE-1 : 0] Wb_wdata_core,
-    output reg [`WORD_SIZE-1 : 0] Wb_rdata_core,
-    output reg                    Wb_ack_core,
+    input      [`ADDR_SIZE-1 : 0] S_wb_core_addr,
+    input                         S_wb_core_cs,
+    input                         S_wb_core_we,
+    input      [`WORD_SIZE-1 : 0] S_wb_core_wdata,
+    output reg [`WORD_SIZE-1 : 0] S_wb_core_rdata,
+    output reg                    S_wb_core_ack,
 
-    output reg [`ADDR_SIZE-1 : 0] Wb_addr,
-    output reg                    Wb_cs,
-    output reg                    Wb_we,
-    output reg [`WORD_SIZE-1 : 0] Wb_wdata,
-    input      [`WORD_SIZE-1 : 0] Wb_rdata,
-    input                         Wb_ack
+    output reg [`ADDR_SIZE-1 : 0] M_wb_ram_addr,
+    output reg                    M_wb_ram_cs,
+    output reg                    M_wb_ram_we,
+    output reg [`WORD_SIZE-1 : 0] M_wb_ram_wdata,
+    input      [`WORD_SIZE-1 : 0] M_wb_ram_rdata,
+    input                         M_wb_ram_ack
 );
     always_comb begin
-        if (Sel) begin
-            Wb_addr = Wb_addr_core;
-            Wb_cs = Wb_cs_core;
-            Wb_we = Wb_we_core;
-            Wb_wdata = Wb_wdata_core;
-            Wb_rdata_core = Wb_rdata;
-            Wb_ack_core = Wb_ack;
-            Wb_rdata_interpreter = 'b0;
-            Wb_ack_interpreter = 'b0;
+        if (Irq_pending) begin
+            M_wb_ram_addr = S_wb_ctrl_addr;
+            M_wb_ram_cs = S_wb_ctrl_cs;
+            M_wb_ram_we = S_wb_ctrl_we;
+            M_wb_ram_wdata = S_wb_ctrl_wdata;
+            S_wb_core_rdata = 'b0;
+            S_wb_core_ack = 'b0;
+            S_wb_ctrl_rdata = M_wb_ram_rdata;
+            S_wb_ctrl_ack = M_wb_ram_ack;
         end
         else begin
-            Wb_addr = Wb_addr_interpreter;
-            Wb_cs = Wb_cs_interpreter;
-            Wb_we = Wb_we_interpreter;
-            Wb_wdata = Wb_wdata_interpreter;
-            Wb_rdata_core = 'b0;
-            Wb_ack_core = 'b0;
-            Wb_rdata_interpreter = Wb_rdata;
-            Wb_ack_interpreter = Wb_ack;
+            M_wb_ram_addr = S_wb_core_addr;
+            M_wb_ram_cs = S_wb_core_cs;
+            M_wb_ram_we = S_wb_core_we;
+            M_wb_ram_wdata = S_wb_core_wdata;
+            S_wb_core_rdata = M_wb_ram_rdata;
+            S_wb_core_ack = M_wb_ram_ack;
+            S_wb_ctrl_rdata = 'b0;
+            S_wb_ctrl_ack = 'b0;
         end
     end
 

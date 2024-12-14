@@ -23,15 +23,8 @@ module tb;
     event gen2scb_eof_ev;
     event scb2mon_finish_ev;
 
-    logic tb_clk;
-    logic tb_rst;
-
-    wire [`ADDR_SIZE-1 : 0] tb_wb_addr;
-    wire                    tb_wb_cs;
-    wire                    tb_wb_we;
-    wire [`WORD_SIZE-1 : 0] tb_wb_wdata;
-    wire [`WORD_SIZE-1 : 0] tb_wb_rdata;
-    wire                    tb_wb_ack;
+    logic clk;
+    logic rst;
 
     initial begin
         gen2drv_mbx = new();
@@ -44,10 +37,10 @@ module tb;
 
         drv.init();
 
-        tb_clk = 0;
-        tb_rst = 1;
+        clk = 0;
+        rst = 1;
 
-        #(16*`CLK_PERIOD) tb_rst = 0;
+        #(16*`CLK_PERIOD) rst = 0;
         #(16*`CLK_PERIOD);
 
         fork
@@ -58,37 +51,18 @@ module tb;
             scb.run();
         join
 
-        $display("Test passed");
+        $display("Test completed");
 
         $finish();
     end
 
-    always #(`CLK_PERIOD/2) tb_clk = !tb_clk;
+    always #(`CLK_PERIOD/2) clk = !clk;
 
-    uart_system_ctrl uart_system_ctrl_inst (
-        .Clk(tb_clk),
-        .Rst(tb_rst),
-        .Uart_rx(uart.tx),
-        .Uart_tx(uart.rx),
-        .S_wb_addr(tb_wb_addr),
-        .S_wb_cs(tb_wb_cs),
-        .S_wb_we(tb_wb_we),
-        .S_wb_wdata(tb_wb_wdata),
-        .S_wb_rdata(tb_wb_rdata),
-        .S_wb_ack(tb_wb_ack),
-        .Irq(),
-        .Rst_req()
-    );
-
-    ram ram_inst (
-        .Clk      ( tb_clk ),
-        .Rst      ( tb_rst ),
-        .Wb_addr  ( tb_wb_addr ),
-        .Wb_cs    ( tb_wb_cs ),
-        .Wb_we    ( tb_wb_we ),
-        .Wb_wdata ( tb_wb_wdata ),
-        .Wb_rdata ( tb_wb_rdata ),
-        .Wb_ack   ( tb_wb_ack )
+    risc_logic risc_logic_inst (
+        .Clk     ( clk ),
+        .Rst     ( rst ),
+        .Uart_rx ( uart.tx ),
+        .Uart_tx ( uart.rx )
     );
 
 endmodule

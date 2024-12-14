@@ -25,7 +25,7 @@ module tb_core();
         init_sim();
         deassert_reset();
         read_lw(5'd1, 5'd0, 12'hfff);
-        read_data_ack('d101);
+        read_data_ack('d583);
         read_lw(5'd2, 5'd0, 12'hfff);
         read_data_ack('d5);
         read_add(5'd3, 5'd1, 5'd2);
@@ -39,15 +39,16 @@ module tb_core();
         read_sll(5'd11, 5'd1, 5'd2);
         read_srl(5'd12, 5'd1, 5'd2);
         read_slt(5'd13, 5'd1, 5'd2);
-        read_addi(5'd14, 5'd1, 12'd20);
-        read_andi(5'd15, 5'd1, 12'd20);
-        read_ori(5'd16, 5'd1, 12'd20);
-        read_xori(5'd17, 5'd1, 12'd20);
-        read_slli(5'd18, 5'd1, 12'd1);
-        read_srli(5'd19, 5'd1, 12'd1);
+        read_addi(5'd14, 5'd1, 'd73);
+        read_andi(5'd15, 5'd1, 'd4095);
+        read_ori(5'd16, 5'd1, 'd0);
+        read_xori(5'd17, 5'd1, 'd0);
+        read_slli(5'd18, 5'd1, 'd3);
+        read_srli(5'd19, 5'd1, 'd3);
         read_jal(5'd20, 20'd0);
         read_sw(5'd0, 5'd3, 12'hfff);
         write_data_ack();
+        read_sw('d0, 'd3, 8'hf4);
         read_sw(5'd0, 5'd4, 12'hfff);
         write_data_ack();
         read_sw(5'd0, 5'd5, 12'hfff);
@@ -296,6 +297,7 @@ module tb_core();
 
     task read_sw(bit[4:0] rs1, bit[4:0] rs2, bit[11:0] imm);
         tb_wb_rdata = {imm[11:5], rs2, rs1, 3'b010, imm[4:0], S_TYPE_OPCODE};
+        $display("%32b", tb_wb_rdata);
         tb_wb_ack = 1'b1;
         @(posedge tb_clk) #1;
         tb_wb_rdata = 'b0;
@@ -335,12 +337,12 @@ module tb_core();
     core dut (
         .Clk      ( tb_clk ),
         .Rst      ( tb_rst ),
-        .Wb_addr  ( tb_wb_addr ),
-        .Wb_cs    ( tb_wb_cs ),
-        .Wb_we    ( tb_wb_we ),
-        .Wb_wdata ( tb_wb_wdata ),
-        .Wb_rdata ( tb_wb_rdata ),
-        .Wb_ack   ( tb_wb_ack )
+        .M_wb_addr( tb_wb_addr ),
+        .M_wb_cs( tb_wb_cs ),
+        .M_wb_we( tb_wb_we ),
+        .M_wb_wdata( tb_wb_wdata ),
+        .M_wb_rdata( tb_wb_rdata ),
+        .M_wb_ack( tb_wb_ack )
     );
 
 endmodule
