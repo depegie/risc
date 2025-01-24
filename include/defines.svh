@@ -1,7 +1,7 @@
 `ifndef DEFINES_SVH
 `define DEFINES_SVH
 
-`define SIM
+//`define SIM
 
 `define CLK_PERIOD 10
 

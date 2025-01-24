@@ -16,8 +16,16 @@ module request_decoder (
 );
     logic [7:0] command_reg[18];
     logic [4:0] write_ptr;
-
-    // assign S_axis_tready = 1'b1;
+    logic [3:0] req_rst_counter;
+    
+    always_ff @(posedge Clk) begin
+        if (Rst) begin
+            req_rst_counter <= 'd0;
+        end
+        else if (Req_rst) begin
+            req_rst_counter <= req_rst_counter + 'd1;
+        end
+    end
 
     always_ff @(posedge Clk) begin
         if (Rst) begin
@@ -54,7 +62,7 @@ module request_decoder (
         if (char >= "0" && char <= "9")
             return char - "0";
         else if (char >= "a" && char <= "f")
-            return char - "a" + 4'd10; // zastanowic sie
+            return char - "a" + 4'd10;
         else if (char >= "A" && char <= "F")
             return char - "A" + 4'd10;
         else
@@ -127,7 +135,8 @@ module request_decoder (
                 next_state = IDLE;
             end
             RESET: begin
-                next_state = IDLE;
+                if (req_rst_counter == 4'd15) next_state = IDLE;
+                else                          next_state = RESET;
             end
             READ: begin
                 if (Cs & Ack) next_state = IDLE;

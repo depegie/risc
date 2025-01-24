@@ -64,6 +64,10 @@ module uart_tx (
                     next_state = ST_STOP_BIT;
                 end
             end
+            
+            default: begin
+                next_state = ST_IDLE;
+            end
         endcase
     end
     
@@ -96,6 +100,12 @@ module uart_tx (
                 Tx = 1'b1;
                 bit_counter_ena = 1'b0;
                 counters_rst = 1'b0;
+            end
+            
+            default: begin
+                Tx = 1'b1;
+                bit_counter_ena = 1'b0;
+                counters_rst = 1'b1;
             end
         endcase
     end
