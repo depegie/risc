@@ -5,7 +5,7 @@
 ## - rename the used ports (in each line, after get_ports) according to the top level signal names in the project
 
 ##Clock signal
-create_clock -add -name CLK125 -period 8.00 -waveform {0 4} [get_ports { CLK125 }];
+#create_clock -add -name CLK125 -period 8.00 -waveform {0 4} [get_ports { CLK125 }];
 set_property -dict { PACKAGE_PIN K17 IOSTANDARD LVCMOS33 } [get_ports { CLK125 }]; #IO_L12P_T1_MRCC_35 Sch=sysclk
 
 ##Pmod Header JE                                                                                                                  

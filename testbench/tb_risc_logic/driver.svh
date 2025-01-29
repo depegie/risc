@@ -43,7 +43,6 @@ class driver;
 
                     vif.tx = 1'b1;
                     #(16*`CLK_PERIOD);
-                    #(16*`CLK_PERIOD);
                 end
 
                 #(2048*`CLK_PERIOD);
