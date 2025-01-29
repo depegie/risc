@@ -9,18 +9,18 @@ module risc_top (
     
     mmcm mmcm_inst (
         .clk125M_in    ( CLK125 ),
-        .clk7M3728_out ( clk7M3728_out ),
+        .clk7M3728_out ( clk7M3728 ),
         .locked        ( locked )
     );
     
     reset_synchronizer reset_synchronizer_inst (
-        .Clk   ( clk7M3728_out ),
+        .Clk   ( clk7M3728 ),
         .Arstn ( locked ),
         .Rst   ( rst )
     );
     
     risc_logic risc_logic_inst (
-        .Clk     ( clk7M3728_out ),
+        .Clk     ( clk7M3728 ),
         .Rst     ( rst ),
         .Uart_rx ( UART_RXD ),
         .Uart_tx ( UART_TXD )
